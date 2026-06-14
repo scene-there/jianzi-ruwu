@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>见字如晤 - 穿越时光的信</title>
+<title>见字如晤·穿越时光的信</title>
 <!-- Font Awesome图标库 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <style>
@@ -887,23 +887,31 @@ body::before {
   color: var(--ink);
 }
 
-/* 原件展示区 */
+/* 原件展示区：米白信纸，padding 20px，100%宽度 */
 .letter-original {
   margin: 16px;
-  background: linear-gradient(145deg, #EDE5D3, #E0D5C0);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 28px,
+      rgba(139, 94, 60, 0.025) 28px,
+      rgba(139, 94, 60, 0.025) 29px
+    ),
+    linear-gradient(145deg, #F5F0E6, #EDE5D3);
   border-radius: var(--radius);
-  padding: 24px 20px;
+  padding: 20px;
   position: relative;
   box-shadow: 0 4px 15px var(--shadow), inset 0 0 30px rgba(139, 94, 60, 0.08);
   border: 1px solid rgba(139, 94, 60, 0.2);
   cursor: zoom-in;
   transition: var(--transition);
-  /* 竖排滚动：外层容器负责水平滚动 */
-  overflow-x: auto;
-  overflow-y: hidden;
+  /* 整体容器：垂直flex堆叠，正文在上，注释在下 */
+  display: flex;
+  flex-direction: column;
   /* 触摸滚动优化 */
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
+  overflow: hidden;
 }
 
 .letter-original::before {
@@ -911,22 +919,26 @@ body::before {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background:
-    radial-gradient(ellipse at 10% 90%, rgba(139, 94, 60, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 10%, rgba(139, 94, 60, 0.08) 0%, transparent 50%);
+    radial-gradient(ellipse at 10% 90%, rgba(139, 94, 60, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 10%, rgba(139, 94, 60, 0.06) 0%, transparent 50%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 .letter-original .stain {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 94, 60, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(139, 94, 60, 0.05) 0%, transparent 70%);
   pointer-events: none;
+  z-index: 0;
 }
 
 .letter-original .stain:nth-child(1) { width: 80px; height: 60px; top: 10%; right: 5%; }
 .letter-original .stain:nth-child(2) { width: 50px; height: 70px; bottom: 15%; left: 8%; }
 
+/* ========== 横排模式 ========== */
+
+/* 横排：单一文本块，从上到下书写 */
 .letter-original-text {
   font-family: var(--font-title);
   font-size: 1.1rem;
@@ -937,59 +949,13 @@ body::before {
   white-space: pre-wrap;
 }
 
-.letter-original-text.horizontal {
-  /* 横排默认样式，与默认样式一致 */
+/* 横排模式隐藏竖排元素 */
+.letter-original:not(.vertical-mode) .letter-vertical-content {
+  display: none;
 }
 
-/* 竖排样式：内容用vertical-rl，固定高度，让浏览器自动分多列 */
-.letter-original-text.vertical {
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  /* 固定高度：每列能容纳的字数 = height / line-height */
-  height: 380px;
-  line-height: 2.5;
-  font-size: 1rem;
-  /* 关键：让宽度由内容自动决定，不被容器宽度限制 */
-  display: inline-block;
-  /* 不换行，内容自然向左延伸 */
-  white-space: normal;
-  word-break: keep-all;
-  overflow: visible;
-  /* 列间距 */
-  letter-spacing: 0.08em;
-  /* 右侧留白：padding-right在vertical-rl中是右侧（开头位置）的留白 */
-  padding: 10px 30px 10px 0;
-  /* 强制内容不被容器宽度限制 */
-  width: auto;
-  /* 确保起始位置在右侧 */
-  text-align: right;
-  margin: 0 auto;
-}
-
-/* 外层容器滚动条样式（覆盖所有平台）*/
-.letter-original::-webkit-scrollbar {
-  height: 12px;
-}
-
-.letter-original::-webkit-scrollbar-thumb {
-  background: var(--gold);
-  border-radius: 6px;
-  min-width: 30px;
-}
-
-.letter-original::-webkit-scrollbar-track {
-  background: rgba(201, 169, 110, 0.15);
-  border-radius: 6px;
-  margin: 0 20px;
-}
-
-/* Firefox滚动条 */
-.letter-original {
-  scrollbar-width: thin;
-  scrollbar-color: var(--gold) rgba(201, 169, 110, 0.15);
-}
-
-.letter-meta {
+/* 横排注释：常规虚线分隔 */
+.letter-original:not(.vertical-mode) .letter-meta {
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px dashed rgba(139, 94, 60, 0.3);
@@ -1000,54 +966,115 @@ body::before {
   z-index: 1;
 }
 
-/* 竖排时的meta样式：右对齐，参与滚动 */
-.letter-meta.vertical {
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  border-top: none;
-  margin-top: 0;
-  padding-top: 0;
-  padding-right: 20px;
-  height: 380px;
-  line-height: 2.3;
-  font-size: 0.85rem;
-  display: inline-block;
-  white-space: normal;
-  text-align: right;
+/* ========== 竖排模式 ========== */
+
+/* 竖排模式：隐藏横排文本，显示竖排内容区，允许横向滚动 */
+.letter-original.vertical-mode .letter-original-text {
+  display: none;
 }
 
-/* 竖排模式容器样式调整 */
+/* 竖排模式下，外层容器允许横向滚动以展示完整信件内容 */
 .letter-original.vertical-mode {
-  /* 使用flex布局，direction: rtl让子元素从右到左排列 */
+  overflow: visible;
+}
+
+/* 竖排内容区：flex row-reverse，让问候语在最右侧；
+   align-items: flex-start 保证各列从顶部开始，不垂直居中 */
+.letter-vertical-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: row-reverse;
-  /* 让内容从右侧开始排列 */
   justify-content: flex-start;
   align-items: flex-start;
-  gap: 0;
-  /* 保持水平滚动 */
+  /* 内容从容器顶部开始书写 */
+  height: 400px;
+  /* 横向滚动：内容超过容器宽度时可滚动 */
   overflow-x: auto;
   overflow-y: hidden;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  padding: 0;
+  /* 让内容起始位置（右侧）贴紧容器右边缘 */
+  width: 100%;
 }
 
-/* 竖排模式下letter-meta在最右侧（flex-direction: row-reverse后第一个元素） */
-.letter-original.vertical-mode .letter-meta.vertical {
-  /* 固定在右侧，不参与滚动 */
-  position: sticky;
-  right: 0;
-  flex-shrink: 0;
-  /* 右侧留白 */
-  padding-right: 20px;
-  padding-left: 30px;
-  /* 与letter-original-text高度对齐 */
+/* 问候语列：单独一列，竖排书写，位于最右侧（flex row-reverse使第一个子元素在右侧） */
+.letter-greeting.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  /* 固定高度 */
   height: 380px;
+  line-height: 2.2;
+  font-size: 1.05rem;
+  color: var(--ink);
+  font-family: var(--font-title);
+  /* 右侧列与正文列之间的间距 */
+  margin-left: 20px;
+  padding: 4px 8px 4px 4px;
+  /* 不被压缩 */
+  flex-shrink: 0;
+  /* 第一字符从顶部开始 */
+  white-space: pre;
+  /* 竖排下，text-top确保顶部对齐 */
+  display: block;
+  text-align: start;
 }
 
-/* 竖排模式下letter-original-text参与滚动 */
-.letter-original.vertical-mode .letter-original-text.vertical {
+/* 正文列：竖排，内容自动向右（左侧视觉方向）延伸 */
+.letter-body.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  height: 380px;
+  line-height: 2.4;
+  font-size: 1rem;
+  color: var(--ink);
+  font-family: var(--font-title);
+  /* 让宽度由内容自动决定，内容从右向左延伸 */
+  display: inline-block;
+  white-space: pre-wrap;
+  padding: 4px 8px;
+  /* 不被压缩 */
   flex-shrink: 0;
-  /* 增加右侧留白 */
-  padding-right: 40px;
+  letter-spacing: 0.05em;
+}
+
+/* 竖排注释：横排文字，位于底部右对齐，右边缘与问候语列对齐 */
+.letter-original.vertical-mode .letter-meta {
+  position: relative;
+  z-index: 1;
+  /* 横排书写 */
+  writing-mode: horizontal-tb;
+  direction: ltr;
+  /* 文字右对齐，其右边缘即容器最右 = 问候语列右边缘 */
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--brown-light);
+  font-family: var(--font-title);
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(139, 94, 60, 0.3);
+  line-height: 1.8;
+}
+
+/* 容器整体在竖排模式的滚动条 */
+.letter-vertical-content::-webkit-scrollbar {
+  height: 10px;
+}
+
+.letter-vertical-content::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 5px;
+}
+
+.letter-vertical-content::-webkit-scrollbar-track {
+  background: rgba(201, 169, 110, 0.15);
+  border-radius: 5px;
+}
+
+.letter-vertical-content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) rgba(201, 169, 110, 0.15);
 }
 
 /* 排版切换 */
@@ -1536,6 +1563,10 @@ body::before {
   border-radius: var(--radius);
   border: 1px solid rgba(201, 169, 110, 0.3);
   animation: fadeIn 0.3s ease;
+  /* 确保不横向溢出 */
+  box-sizing: border-box;
+  max-width: calc(100% - 32px);
+  overflow: hidden;
 }
 
 .draw-toolbar {
@@ -1543,13 +1574,14 @@ body::before {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .draw-colors {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .draw-color {
@@ -1559,6 +1591,7 @@ body::before {
   border: 2px solid transparent;
   cursor: pointer;
   transition: var(--transition);
+  flex-shrink: 0;
 }
 
 .draw-color.active {
@@ -1574,6 +1607,7 @@ body::before {
   padding: 0 8px;
   border-left: 1px solid rgba(201, 169, 110, 0.3);
   border-right: 1px solid rgba(201, 169, 110, 0.3);
+  flex-shrink: 0;
 }
 
 .draw-size {
@@ -1583,6 +1617,7 @@ body::before {
   cursor: pointer;
   transition: var(--transition);
   padding: 0;
+  flex-shrink: 0;
 }
 
 .draw-size.active {
@@ -1592,6 +1627,8 @@ body::before {
 .draw-actions {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .draw-action {
@@ -1606,6 +1643,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .draw-action:hover {
@@ -1620,13 +1658,16 @@ body::before {
 }
 
 .draw-canvas {
-  width: 100%;
-  height: 200px;
-  background: rgba(255, 255, 255, 0.9);
+  /* 画布尺寸由JS控制，确保不超出容器 */
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 6px;
   border: 1px solid rgba(201, 169, 110, 0.4);
   cursor: crosshair;
   touch-action: none;
+  /* 确保画布不超出容器 */
+  display: block;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .draw-footer {
@@ -1868,9 +1909,8 @@ body::before {
   line-height: 1.7;
   color: var(--ink);
   margin-bottom: 8px;
-  /* 所有卡片统一应用3行截断 */
+  /* 行数由 JS 动态设置（-webkit-line-clamp），保持盒子结构即可 */
   display: -webkit-box;
-  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2437,9 +2477,8 @@ body::before {
   line-height: 1.7;
   color: var(--ink);
   margin-bottom: 8px;
-  /* 所有卡片统一应用3行截断 */
+  /* 行数由 JS 动态设置（-webkit-line-clamp），保持盒子结构即可 */
   display: -webkit-box;
-  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3064,24 +3103,35 @@ body::before {
     line-height: 1;
   }
 
-  /* 竖排文字容器适配 */
-  .letter-original-text.vertical {
-    height: 60vw;
-    max-height: 420px;
+  /* 竖排内容区域 - 移动端适配 */
+  .letter-vertical-content {
+    height: 62vw;
+    max-height: 380px;
     min-height: 280px;
+  }
+
+  .letter-greeting.vertical,
+  .letter-body.vertical {
+    height: 62vw;
+    max-height: 370px;
+    min-height: 270px;
     font-size: 0.95rem;
   }
 
-  /* 信件内容区适配 */
-  .letter-original {
+  /* 竖排模式容器适配 */
+  .letter-original.vertical-mode {
     margin: 12px;
     padding: 16px 14px;
+    min-height: 70vw;
+    /* 确保横向滚动在移动端顺畅 */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 
-  /* 确保触摸滚动正常工作 */
-  .letter-original-text.vertical {
-    touch-action: pan-x;
-    -webkit-overflow-scrolling: touch;
+  /* 信件内容区适配（横排） */
+  .letter-original:not(.vertical-mode) {
+    margin: 12px;
+    padding: 16px 14px;
   }
 
   /* 按钮和交互元素触摸优化 */
@@ -3271,7 +3321,14 @@ body::before {
     <div class="letter-original" id="letterOriginal">
       <div class="stain"></div>
       <div class="stain"></div>
-      <div class="letter-original-text" id="letterText"></div>
+      <!-- 横排模式：单一文本块 -->
+      <div class="letter-original-text horizontal" id="letterText"></div>
+      <!-- 竖排模式：问候语单列 + 正文多列 -->
+      <div class="letter-vertical-content" id="letterVerticalContent">
+        <div class="letter-greeting vertical" id="letterGreeting"></div>
+        <div class="letter-body vertical" id="letterBody"></div>
+      </div>
+      <!-- 注释信息（竖排：横排文字底部右对齐；横排：常规样式） -->
       <div class="letter-meta" id="letterMeta"></div>
     </div>
 
@@ -4706,44 +4763,64 @@ function setLayout(mode, el) {
   const metaEl = document.getElementById('letterMeta');
   const originalEl = document.getElementById('letterOriginal');
 
+  // 竖排模式下使用的元素
+  const greetingEl = document.getElementById('letterGreeting');
+  const bodyEl = document.getElementById('letterBody');
+  const verticalContentEl = document.getElementById('letterVerticalContent');
+
   if (mode === 'vertical') {
     // 竖排模式：处理内容格式
     let content = currentLetter ? currentLetter.content : textEl.textContent;
 
-    // 处理问候语：让第一行（问候语）单独一列
-    // 查找第一个换行或冒号后的位置
+    // 处理问候语：让第一行（问候语）单独一列（占据最右侧的 letter-greeting）
     const lines = content.split('\n');
-    let formattedContent = '';
+    let greeting = '';
+    let body = '';
 
-    if (lines.length > 0) {
-      // 第一行作为问候语单独一列
-      const greeting = lines[0].trim();
-      // 后续内容
-      const body = lines.slice(1).join('\n').trim();
-
-      // 使用特殊标记让问候语单独一列（后面加足够空格）
-      formattedContent = greeting + '\n\n' + body;
+    if (lines.length > 0 && lines[0].trim().length > 0) {
+      greeting = lines[0].trim();
+      body = lines.slice(1).join('\n').trim();
     } else {
-      formattedContent = content;
+      greeting = '';
+      body = content;
     }
 
-    textEl.textContent = formattedContent;
-    textEl.className = 'letter-original-text vertical';
+    // 填充问候语列（右侧最上）
+    greetingEl.textContent = greeting;
+    greetingEl.className = 'letter-greeting vertical';
+
+    // 填充正文列（在问候语左侧，内容从右向左延伸）
+    bodyEl.textContent = body;
+    bodyEl.className = 'letter-body vertical';
+
+    // 注释信息保持，但在竖排模式下应用不同的样式类名
     metaEl.className = 'letter-meta vertical';
+
     originalEl.classList.add('vertical-mode');
 
-    // vertical-rl模式：scrollLeft=0表示最右侧（开头）
+    // 垂直书写（vertical-rl）在LTR环境中，右侧为内容起始位置。
+    // 我们的 layout 使用 flex-direction: row-reverse，所以问候语（greeting）在最右侧，
+    // 即用户首次看到的就是信件的开头（问候语），不需要滚动。
+    // 同时让 vertical-content 从右侧开始（scrollLeft = 0 即为最右侧起点）。
     setTimeout(() => {
-      originalEl.scrollLeft = 0;
+      if (verticalContentEl) {
+        // scrollLeft = 0 在 LTR 环境中是「左侧」，但因为 flex-direction: row-reverse，
+        // 我们需要将滚动条设置到最右端，让内容从右侧（问候语位置）开始展示。
+        verticalContentEl.scrollLeft = verticalContentEl.scrollWidth;
+      }
     }, 50);
   } else {
-    // 恢复原始内容
+    // 恢复横排布局与原始内容
     if (currentLetter) {
       textEl.textContent = currentLetter.content;
     }
     textEl.className = 'letter-original-text horizontal';
     metaEl.className = 'letter-meta horizontal';
     originalEl.classList.remove('vertical-mode');
+
+    // 清空竖排元素，避免意外残留
+    if (greetingEl) greetingEl.textContent = '';
+    if (bodyEl) bodyEl.textContent = '';
   }
 }
 
@@ -4898,14 +4975,22 @@ function initDrawCanvas() {
 
   drawCtx = drawCanvas.getContext('2d');
 
-  // 设置画布尺寸
+  // 设置画布尺寸 - 使用实际容器内容区宽度
   const container = drawCanvas.parentElement;
+  const styles = window.getComputedStyle(container);
+  const paddingLR = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
   const dpr = window.devicePixelRatio || 1;
 
-  drawCanvas.width = container.offsetWidth * dpr;
-  drawCanvas.height = 200 * dpr;
-  drawCanvas.style.width = container.offsetWidth + 'px';
-  drawCanvas.style.height = '200px';
+  // 计算实际可用的内容宽度（去掉padding）
+  const availableWidth = container.clientWidth - paddingLR;
+  const canvasHeight = 200;
+
+  drawCanvas.width = availableWidth * dpr;
+  drawCanvas.height = canvasHeight * dpr;
+  drawCanvas.style.width = availableWidth + 'px';
+  drawCanvas.style.height = canvasHeight + 'px';
+  drawCanvas.style.maxWidth = '100%';
+  drawCanvas.style.display = 'block';
 
   drawCtx.scale(dpr, dpr);
   drawCtx.lineCap = 'round';
@@ -4914,7 +4999,7 @@ function initDrawCanvas() {
   drawCtx.lineWidth = currentSize;
 
   // 清空并设置白色背景
-  drawCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  drawCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
   drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
 
   // 初始化历史记录
@@ -5683,8 +5768,7 @@ function loadMorePlaza(tab, allData) {
     if (loadingEl) loadingEl.style.display = 'none';
     if (endEl) endEl.style.display = tabData.hasMore ? 'none' : 'block';
 
-    // 动态检测是否需要显示"点击阅读全文"
-    setTimeout(updateWaterfallReadMore, 0);
+    // （移除「点击阅读全文」动态检测：当前卡片依靠 CSS line-clamp 自行截断）
 
     // 设置滚动监听
     setupScrollListener(tab, allData);
@@ -5727,6 +5811,9 @@ function renderWaterfallItem(item) {
   const date = new Date(item.createdAt);
   const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
 
+  // 根据卡片ID + 当前小时数生成稳定随机数（2~6行），1小时内行数不变
+  const lineCount = getStableLineCount(item.id);
+
   // 检查是否已点赞
   const likedItems = getStore('likedItems') || [];
   const isLiked = likedItems.includes(item.id);
@@ -5754,8 +5841,7 @@ function renderWaterfallItem(item) {
       <div style="font-size:0.7rem;color:var(--brown-light);margin-bottom:6px;">
         <i class="fas fa-${item.type === 'reply' ? 'reply' : 'user-secret'}" style="font-size:0.6rem;"></i> ${item.type === 'reply' ? '回复' : '改写'}「${item.letterTitle}」
       </div>
-      <div class="waterfall-item-text">${item.content}</div>
-      <div class="waterfall-read-more" style="display:none;">点击阅读全文 ↓</div>
+      <div class="waterfall-item-text" style="-webkit-line-clamp: ${lineCount}; line-clamp: ${lineCount};">${item.content}</div>
       ${decoHtml}
       <div class="waterfall-item-meta">
         <span>${item.sign} · ${dateStr}</span>
@@ -5765,6 +5851,24 @@ function renderWaterfallItem(item) {
       </div>
     </div>
   `;
+}
+
+// 根据卡片ID + 小时时间戳生成稳定的随机行数（2~6），1小时内访问同一卡片行数不变
+function getStableLineCount(seed) {
+  // 取当前日期的小时作为时间片（每小时变化一次）
+  const now = new Date();
+  const hourKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}`;
+  // 将seed与hourKey混合成一个稳定数值
+  const str = String(seed) + '|' + hourKey;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  // 取绝对值映射到 2~6
+  const range = 6 - 2 + 1; // 5
+  return 2 + (Math.abs(hash) % range);
 }
 
 // 动态检测卡片文字是否溢出3行，若溢出则显示"点击阅读全文"
