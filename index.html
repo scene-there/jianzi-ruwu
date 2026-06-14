@@ -898,7 +898,12 @@ body::before {
   border: 1px solid rgba(139, 94, 60, 0.2);
   cursor: zoom-in;
   transition: var(--transition);
-  overflow: hidden;
+  /* 竖排滚动：外层容器负责水平滚动 */
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* 触摸滚动优化 */
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .letter-original::before {
@@ -909,6 +914,7 @@ body::before {
     radial-gradient(ellipse at 10% 90%, rgba(139, 94, 60, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 90% 10%, rgba(139, 94, 60, 0.08) 0%, transparent 50%);
   pointer-events: none;
+  z-index: -1;
 }
 
 .letter-original .stain {
@@ -935,41 +941,52 @@ body::before {
   /* 横排默认样式，与默认样式一致 */
 }
 
+/* 竖排样式：内容用vertical-rl，固定高度，让浏览器自动分多列 */
 .letter-original-text.vertical {
   writing-mode: vertical-rl;
-  text-orientation: mixed;
-  height: 70vh;
-  max-height: 480px;
-  min-height: 300px;
-  line-height: 2;
+  text-orientation: upright;
+  /* 固定高度：每列能容纳的字数 = height / line-height */
+  height: 380px;
+  line-height: 2.5;
   font-size: 1rem;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  padding: 20px 16px 16px 16px;
+  /* 关键：让宽度由内容自动决定，不被容器宽度限制 */
+  display: inline-block;
+  /* 不换行，内容自然向左延伸 */
   white-space: normal;
   word-break: keep-all;
-  text-align: start;
-  direction: rtl;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  /* 启用硬件加速确保滚动流畅 */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
+  overflow: visible;
+  /* 列间距 */
+  letter-spacing: 0.08em;
+  /* 右侧留白：padding-right在vertical-rl中是右侧（开头位置）的留白 */
+  padding: 10px 30px 10px 0;
+  /* 强制内容不被容器宽度限制 */
+  width: auto;
+  /* 确保起始位置在右侧 */
+  text-align: right;
+  margin: 0 auto;
 }
 
-.letter-original-text.vertical::-webkit-scrollbar {
-  height: 8px;
+/* 外层容器滚动条样式（覆盖所有平台）*/
+.letter-original::-webkit-scrollbar {
+  height: 12px;
 }
 
-.letter-original-text.vertical::-webkit-scrollbar-thumb {
+.letter-original::-webkit-scrollbar-thumb {
   background: var(--gold);
-  border-radius: 4px;
+  border-radius: 6px;
+  min-width: 30px;
 }
 
-.letter-original-text.vertical::-webkit-scrollbar-track {
-  background: rgba(201, 169, 110, 0.1);
-  border-radius: 4px;
+.letter-original::-webkit-scrollbar-track {
+  background: rgba(201, 169, 110, 0.15);
+  border-radius: 6px;
+  margin: 0 20px;
+}
+
+/* Firefox滚动条 */
+.letter-original {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) rgba(201, 169, 110, 0.15);
 }
 
 .letter-meta {
@@ -981,6 +998,56 @@ body::before {
   font-family: var(--font-title);
   position: relative;
   z-index: 1;
+}
+
+/* 竖排时的meta样式：右对齐，参与滚动 */
+.letter-meta.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+  padding-right: 20px;
+  height: 380px;
+  line-height: 2.3;
+  font-size: 0.85rem;
+  display: inline-block;
+  white-space: normal;
+  text-align: right;
+}
+
+/* 竖排模式容器样式调整 */
+.letter-original.vertical-mode {
+  /* 使用flex布局，direction: rtl让子元素从右到左排列 */
+  display: flex;
+  flex-direction: row-reverse;
+  /* 让内容从右侧开始排列 */
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  /* 保持水平滚动 */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* 竖排模式下letter-meta在最右侧（flex-direction: row-reverse后第一个元素） */
+.letter-original.vertical-mode .letter-meta.vertical {
+  /* 固定在右侧，不参与滚动 */
+  position: sticky;
+  right: 0;
+  flex-shrink: 0;
+  /* 右侧留白 */
+  padding-right: 20px;
+  padding-left: 30px;
+  /* 与letter-original-text高度对齐 */
+  height: 380px;
+}
+
+/* 竖排模式下letter-original-text参与滚动 */
+.letter-original.vertical-mode .letter-original-text.vertical {
+  flex-shrink: 0;
+  /* 增加右侧留白 */
+  padding-right: 40px;
 }
 
 /* 排版切换 */
@@ -1461,6 +1528,123 @@ body::before {
   background: rgba(201, 169, 110, 0.25);
 }
 
+/* 手绘画布 */
+.draw-canvas-container {
+  margin: 0 16px 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius);
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+.draw-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.draw-colors {
+  display: flex;
+  gap: 6px;
+}
+
+.draw-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.draw-color.active {
+  border-color: var(--gold);
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.draw-sizes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-left: 1px solid rgba(201, 169, 110, 0.3);
+  border-right: 1px solid rgba(201, 169, 110, 0.3);
+}
+
+.draw-size {
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 0;
+}
+
+.draw-size.active {
+  border-color: var(--gold);
+}
+
+.draw-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.draw-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--brown);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.draw-action:hover {
+  background: rgba(201, 169, 110, 0.2);
+  color: var(--dark-red);
+}
+
+.draw-action.eraser.active {
+  background: rgba(139, 58, 58, 0.15);
+  color: var(--dark-red);
+  border-color: var(--dark-red);
+}
+
+.draw-canvas {
+  width: 100%;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.draw-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* 已添加的手绘图片 */
+.added-draw-image {
+  height: 24px;
+  width: auto;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
 /* 随信弹窗 */
 .deco-popup {
   display: none;
@@ -1736,6 +1920,14 @@ body::before {
   border-radius: 12px;
   font-size: 0.7rem;
   color: var(--brown);
+}
+
+.waterfall-draw-img {
+  height: 20px;
+  width: auto;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 2px;
 }
 
 .waterfall-item-meta {
@@ -2470,6 +2662,14 @@ body::before {
   color: var(--brown);
 }
 
+.detail-draw-image {
+  max-height: 32px;
+  max-width: 80px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
 .detail-content-meta {
   margin-top: 14px;
   padding-top: 12px;
@@ -3063,8 +3263,8 @@ body::before {
 
     <!-- 排版切换 -->
     <div class="layout-toggle">
-      <button class="layout-btn active" onclick="setLayout('horizontal', this)">横排</button>
-      <button class="layout-btn" onclick="setLayout('vertical', this)">竖排</button>
+      <button class="layout-btn active" data-mode="horizontal" onclick="setLayout('horizontal', this)">横排</button>
+      <button class="layout-btn" data-mode="vertical" onclick="setLayout('vertical', this)">竖排</button>
     </div>
 
     <!-- 原件展示区 -->
@@ -3134,13 +3334,41 @@ body::before {
     <div class="deco-toolbar">
       <button class="deco-btn" onclick="showDecoCategory('flower')"><i class="fas fa-seedling"></i> 花草</button>
       <button class="deco-btn" onclick="showDecoCategory('food')"><i class="fas fa-mug-hot"></i> 食物</button>
-      <button class="deco-btn" onclick="showDecoCategory('draw')"><i class="fas fa-paint-brush"></i> 手绘</button>
       <button class="deco-btn" onclick="showDecoCategory('stamp')"><i class="fas fa-stamp"></i> 拼贴</button>
+      <button class="deco-btn" onclick="showDecoCategory('draw')"><i class="fas fa-paint-brush"></i> 手绘</button>
     </div>
 
     <!-- 装饰元素预览 -->
     <div class="deco-preview" id="decoPreview">
       <div class="deco-items" id="decoItems"></div>
+    </div>
+
+    <!-- 手绘画布区域 -->
+    <div class="draw-canvas-container" id="drawCanvasContainer" style="display:none;">
+      <div class="draw-toolbar">
+        <div class="draw-colors">
+          <button class="draw-color active" data-color="#2C2416" style="background:#2C2416;"></button>
+          <button class="draw-color" data-color="#8B3A3A" style="background:#8B3A3A;"></button>
+          <button class="draw-color" data-color="#C9A96E" style="background:#C9A96E;"></button>
+          <button class="draw-color" data-color="#4A7C59" style="background:#4A7C59;"></button>
+          <button class="draw-color" data-color="#6B5B95" style="background:#6B5B95;"></button>
+        </div>
+        <div class="draw-sizes">
+          <button class="draw-size active" data-size="2" style="width:6px;height:6px;"></button>
+          <button class="draw-size" data-size="4" style="width:10px;height:10px;"></button>
+          <button class="draw-size" data-size="8" style="width:14px;height:14px;"></button>
+        </div>
+        <div class="draw-actions">
+          <button class="draw-action" onclick="drawUndo()" title="撤销"><i class="fas fa-undo"></i></button>
+          <button class="draw-action" onclick="drawClear()" title="清空"><i class="fas fa-trash-alt"></i></button>
+          <button class="draw-action eraser" onclick="toggleEraser()" title="橡皮擦"><i class="fas fa-eraser"></i></button>
+        </div>
+      </div>
+      <canvas id="drawCanvas" class="draw-canvas"></canvas>
+      <div class="draw-footer">
+        <button class="btn-secondary" onclick="hideDrawCanvas()">取消</button>
+        <button class="btn-primary" onclick="saveDrawing()"><i class="fas fa-check"></i> 添加手绘</button>
+      </div>
     </div>
 
     <!-- 署名和投递设置 -->
@@ -4446,12 +4674,19 @@ function openLetter(letter) {
     <div>${letter.era} · ${letter.author}致${letter.to}</div>
     <div style="margin-top:4px;">${letter.date}</div>
   `;
+  document.getElementById('letterMeta').className = 'letter-meta horizontal';
+  document.getElementById('letterOriginal').classList.remove('vertical-mode');
+
   document.getElementById('sceneText').textContent = letter.scene;
   document.getElementById('sceneMusic').textContent = letter.music;
 
   // 重置情景还原
   document.getElementById('sceneContent').classList.remove('show');
   document.getElementById('sceneArrow').style.transform = '';
+
+  // 重置排版按钮状态
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.layout-btn[data-mode="horizontal"]')?.classList.add('active');
 
   // 更新收藏状态
   updateFavButton();
@@ -4468,15 +4703,47 @@ function setLayout(mode, el) {
   if (el) el.classList.add('active');
 
   const textEl = document.getElementById('letterText');
+  const metaEl = document.getElementById('letterMeta');
+  const originalEl = document.getElementById('letterOriginal');
+
   if (mode === 'vertical') {
+    // 竖排模式：处理内容格式
+    let content = currentLetter ? currentLetter.content : textEl.textContent;
+
+    // 处理问候语：让第一行（问候语）单独一列
+    // 查找第一个换行或冒号后的位置
+    const lines = content.split('\n');
+    let formattedContent = '';
+
+    if (lines.length > 0) {
+      // 第一行作为问候语单独一列
+      const greeting = lines[0].trim();
+      // 后续内容
+      const body = lines.slice(1).join('\n').trim();
+
+      // 使用特殊标记让问候语单独一列（后面加足够空格）
+      formattedContent = greeting + '\n\n' + body;
+    } else {
+      formattedContent = content;
+    }
+
+    textEl.textContent = formattedContent;
     textEl.className = 'letter-original-text vertical';
-    // vertical-rl + direction: rtl，文字从右上开始，向左延伸
-    // 需要确保初始位置在最右侧（scrollLeft = 0 即是最右侧）
+    metaEl.className = 'letter-meta vertical';
+    originalEl.classList.add('vertical-mode');
+
+    // vertical-rl模式：scrollLeft=0表示最右侧（开头）
     setTimeout(() => {
-      textEl.scrollLeft = 0;
-    }, 100);
+      originalEl.scrollLeft = 0;
+    }, 50);
   } else {
+    // 恢复原始内容
+    if (currentLetter) {
+      textEl.textContent = currentLetter.content;
+    }
     textEl.className = 'letter-original-text horizontal';
+    metaEl.className = 'letter-meta horizontal';
+    originalEl.classList.remove('vertical-mode');
   }
 }
 
@@ -4589,6 +4856,13 @@ function showDecoCategory(category) {
   document.querySelectorAll('.deco-btn').forEach(b => b.classList.remove('active'));
   event.target.closest('.deco-btn').classList.add('active');
 
+  // 手绘类别：显示画布
+  if (category === 'draw') {
+    document.getElementById('decoPreview').classList.remove('show');
+    showDrawCanvas();
+    return;
+  }
+
   const data = decoData[category];
   items.innerHTML = data.items.map(item => `
     <div class="deco-item" onclick="addDecoration('${category}', '${item.icon}', '${item.name}')">
@@ -4598,11 +4872,230 @@ function showDecoCategory(category) {
   `).join('');
 
   preview.classList.add('show');
+  // 隐藏画布
+  document.getElementById('drawCanvasContainer').style.display = 'none';
 }
 
 function hideDecoPreview() {
   document.getElementById('decoPreview').classList.remove('show');
+  document.getElementById('drawCanvasContainer').style.display = 'none';
   document.querySelectorAll('.deco-btn').forEach(b => b.classList.remove('active'));
+}
+
+/* ==================== 手绘功能 ==================== */
+let drawCanvas, drawCtx;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let currentColor = '#2C2416';
+let currentSize = 2;
+let isEraser = false;
+let drawHistory = [];
+let drawHistoryIndex = -1;
+
+function initDrawCanvas() {
+  drawCanvas = document.getElementById('drawCanvas');
+  if (!drawCanvas) return;
+
+  drawCtx = drawCanvas.getContext('2d');
+
+  // 设置画布尺寸
+  const container = drawCanvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+
+  drawCanvas.width = container.offsetWidth * dpr;
+  drawCanvas.height = 200 * dpr;
+  drawCanvas.style.width = container.offsetWidth + 'px';
+  drawCanvas.style.height = '200px';
+
+  drawCtx.scale(dpr, dpr);
+  drawCtx.lineCap = 'round';
+  drawCtx.lineJoin = 'round';
+  drawCtx.strokeStyle = currentColor;
+  drawCtx.lineWidth = currentSize;
+
+  // 清空并设置白色背景
+  drawCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+  // 初始化历史记录
+  drawHistory = [];
+  drawHistoryIndex = -1;
+  saveDrawState();
+
+  // 绑定颜色和大小按钮事件
+  document.querySelectorAll('.draw-color').forEach(btn => {
+    btn.onclick = function() {
+      setDrawColor(this.dataset.color, this);
+    };
+  });
+
+  document.querySelectorAll('.draw-size').forEach(btn => {
+    btn.onclick = function() {
+      setDrawSize(parseInt(this.dataset.size), this);
+    };
+  });
+}
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = drawCanvas.getBoundingClientRect();
+  lastX = touch.clientX - rect.left;
+  lastY = touch.clientY - rect.top;
+  isDrawing = true;
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastX, lastY);
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!isDrawing) return;
+  const touch = e.touches[0];
+  const rect = drawCanvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  drawCtx.lineTo(x, y);
+  drawCtx.stroke();
+
+  lastX = x;
+  lastY = y;
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  const rect = drawCanvas.getBoundingClientRect();
+  lastX = e.clientX - rect.left;
+  lastY = e.clientY - rect.top;
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastX, lastY);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  const rect = drawCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  drawCtx.lineTo(x, y);
+  drawCtx.stroke();
+
+  lastX = x;
+  lastY = y;
+}
+
+function endDraw() {
+  if (isDrawing) {
+    isDrawing = false;
+    drawCtx.closePath();
+    saveDrawState();
+  }
+}
+
+function saveDrawState() {
+  if (!drawCanvas) return;
+  // 移除当前位置之后的历史
+  drawHistory = drawHistory.slice(0, drawHistoryIndex + 1);
+  // 保存当前状态
+  drawHistory.push(drawCanvas.toDataURL());
+  drawHistoryIndex++;
+}
+
+function drawUndo() {
+  if (drawHistoryIndex > 0) {
+    drawHistoryIndex--;
+    restoreDrawState(drawHistory[drawHistoryIndex]);
+  }
+}
+
+function restoreDrawState(dataUrl) {
+  if (!drawCtx) return;
+  const img = new Image();
+  img.onload = function() {
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    drawCtx.drawImage(img, 0, 0, drawCanvas.width / (window.devicePixelRatio || 1), drawCanvas.height / (window.devicePixelRatio || 1));
+  };
+  img.src = dataUrl;
+}
+
+function drawClear() {
+  if (!drawCtx || !drawCanvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  drawCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawHistory = [];
+  drawHistoryIndex = -1;
+  saveDrawState();
+}
+
+function setDrawColor(color, el) {
+  currentColor = color;
+  isEraser = false;
+  if (drawCtx) {
+    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.strokeStyle = color;
+  }
+  document.querySelectorAll('.draw-color').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.draw-action.eraser').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function setDrawSize(size, el) {
+  currentSize = size;
+  if (drawCtx) {
+    drawCtx.lineWidth = size;
+  }
+  document.querySelectorAll('.draw-size').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function toggleEraser() {
+  isEraser = !isEraser;
+  const eraserBtn = document.querySelector('.draw-action.eraser');
+  if (drawCtx) {
+    if (isEraser) {
+      drawCtx.globalCompositeOperation = 'destination-out';
+      eraserBtn.classList.add('active');
+      document.querySelectorAll('.draw-color').forEach(c => c.classList.remove('active'));
+    } else {
+      drawCtx.globalCompositeOperation = 'source-over';
+      drawCtx.strokeStyle = currentColor;
+      eraserBtn.classList.remove('active');
+    }
+  }
+}
+
+function showDrawCanvas() {
+  const container = document.getElementById('drawCanvasContainer');
+  const preview = document.getElementById('decoPreview');
+
+  preview.classList.remove('show');
+  container.style.display = 'block';
+
+  // 初始化画布
+  setTimeout(initDrawCanvas, 50);
+}
+
+function hideDrawCanvas() {
+  document.getElementById('drawCanvasContainer').style.display = 'none';
+}
+
+function saveDrawing() {
+  if (!drawCanvas) return;
+  // 将canvas转为图片并添加到装饰
+  const dataUrl = drawCanvas.toDataURL('image/png');
+
+  // 添加到手绘装饰列表
+  if (currentWriteMode === 'reply') {
+    addedDecos.push({ category: 'draw', icon: '🎨', name: '手绘', image: dataUrl });
+    renderAddedDecos();
+  }
+
+  hideDrawCanvas();
+  showToast('已添加手绘插图');
+
+  // 重置画布
+  setTimeout(drawClear, 100);
 }
 
 function addDecoration(category, icon, name) {
@@ -4625,12 +5118,24 @@ function addDecoration(category, icon, name) {
 
 function renderAddedDecos() {
   const container = document.getElementById('addedDecos');
-  container.innerHTML = addedDecos.map((d, i) => `
-    <span class="added-deco-tag">
-      ${d.icon} ${d.name}
-      <span class="remove-deco" onclick="removeDeco(${i})"><i class="fas fa-times"></i></span>
-    </span>
-  `).join('');
+  container.innerHTML = addedDecos.map((d, i) => {
+    // 手绘图片特殊处理
+    if (d.image) {
+      return `
+        <span class="added-deco-tag">
+          <img src="${d.image}" alt="手绘" class="added-draw-image">
+          ${d.name}
+          <span class="remove-deco" onclick="removeDeco(${i})"><i class="fas fa-times"></i></span>
+        </span>
+      `;
+    }
+    return `
+      <span class="added-deco-tag">
+        ${d.icon} ${d.name}
+        <span class="remove-deco" onclick="removeDeco(${i})"><i class="fas fa-times"></i></span>
+      </span>
+    `;
+  }).join('');
 }
 
 function removeDeco(index) {
@@ -5233,7 +5738,13 @@ function renderWaterfallItem(item) {
   const decos = item.decorations || [];
   const decoHtml = decos.length > 0 ? `
     <div class="waterfall-decos">
-      ${decos.slice(0, 4).map(d => `<span class="waterfall-deco-tag">${d.icon} ${d.name}</span>`).join('')}
+      ${decos.slice(0, 4).map(d => {
+        // 手绘图片特殊处理
+        if (d.image) {
+          return `<span class="waterfall-deco-tag"><img src="${d.image}" alt="手绘" class="waterfall-draw-img"> ${d.name}</span>`;
+        }
+        return `<span class="waterfall-deco-tag">${d.icon} ${d.name}</span>`;
+      }).join('')}
       ${decos.length > 4 ? `<span class="waterfall-deco-more">+${decos.length - 4}</span>` : ''}
     </div>
   ` : '';
@@ -5322,7 +5833,13 @@ function openDetailPage(type, id) {
     detailDecos.innerHTML = `
       <div class="detail-decos-title">随信礼物</div>
       <div class="detail-decos-list">
-        ${decos.map(d => `<span class="detail-deco-item">${d.icon} ${d.name}</span>`).join('')}
+        ${decos.map(d => {
+          // 手绘图片特殊处理
+          if (d.image) {
+            return `<span class="detail-deco-item"><img src="${d.image}" alt="手绘" class="detail-draw-image"> ${d.name}</span>`;
+          }
+          return `<span class="detail-deco-item">${d.icon} ${d.name}</span>`;
+        }).join('')}
       </div>
     `;
   } else {
