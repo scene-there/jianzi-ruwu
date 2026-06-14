@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>见字如晤 - 穿越时光的信</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- Font Awesome图标库 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <style>
 /* ==================== CSS变量与全局样式 ==================== */
 :root {
@@ -21,9 +22,9 @@
   --seal-red: #B22222;
   --shadow: rgba(44, 36, 22, 0.15);
   --shadow-strong: rgba(44, 36, 22, 0.3);
-  --font-title: 'KaiTi', 'STKaiti', '楷体', 'SimSun', '宋体', serif;
-  --font-body: 'FangSong', 'STFangsong', '仿宋', 'SimSun', '宋体', serif;
-  --font-hand: 'KaiTi', 'STKaiti', '楷体', cursive;
+  --font-title: 'KaiTi', 'STKaiti', '楷体', 'Noto Serif SC', 'Source Han Serif CN', 'SimSun', '宋体', serif;
+  --font-body: 'FangSong', 'STFangsong', '仿宋', 'Noto Serif SC', 'Source Han Serif CN', 'SimSun', '宋体', serif;
+  --font-hand: 'KaiTi', 'STKaiti', '楷体', 'Noto Serif SC', cursive;
   --radius: 8px;
   --transition: all 0.3s ease;
 }
@@ -937,10 +938,12 @@ body::before {
 .letter-original-text.vertical {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  height: 480px;
+  height: 70vh;
+  max-height: 480px;
+  min-height: 300px;
   line-height: 2;
   font-size: 1rem;
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   padding: 20px 16px 16px 16px;
   white-space: normal;
@@ -949,6 +952,10 @@ body::before {
   direction: rtl;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* 启用硬件加速确保滚动流畅 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .letter-original-text.vertical::-webkit-scrollbar {
@@ -2819,6 +2826,133 @@ body::before {
 .detail-empty-comments p {
   font-family: var(--font-title);
   font-size: 0.85rem;
+}
+
+/* ==================== 手机端适配 ==================== */
+@media screen and (max-width: 480px) {
+  /* 字体大小调整 */
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 导航栏图标确保显示 */
+  .nav-item i {
+    display: inline-block;
+    font-size: 20px !important;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .nav-item span {
+    display: block;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+
+  /* 所有图标统一显示 */
+  i[class*="fa-"] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    line-height: 1;
+  }
+
+  /* 竖排文字容器适配 */
+  .letter-original-text.vertical {
+    height: 60vw;
+    max-height: 420px;
+    min-height: 280px;
+    font-size: 0.95rem;
+  }
+
+  /* 信件内容区适配 */
+  .letter-original {
+    margin: 12px;
+    padding: 16px 14px;
+  }
+
+  /* 确保触摸滚动正常工作 */
+  .letter-original-text.vertical {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 按钮和交互元素触摸优化 */
+  .layout-btn,
+  .read-action-item,
+  .nav-item,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 触摸友好的点击区域 */
+  .waterfall-item-likes,
+  .read-action-item,
+  .nav-item {
+    -webkit-tap-highlight-color: rgba(201, 169, 110, 0.2);
+  }
+
+  /* 输入框适配 */
+  textarea,
+  input[type="text"] {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+
+  /* 卡片样式优化 */
+  .waterfall-item {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* 详情页适配 */
+  .detail-content {
+    padding: 16px;
+  }
+
+  /* 滚动条在手机上隐藏但保持功能 */
+  .letter-original-text.vertical::-webkit-scrollbar {
+    height: 6px;
+    opacity: 0.5;
+  }
+
+  /* 底部导航固定 */
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+/* 小屏手机额外适配 */
+@media screen and (max-width: 360px) {
+  .letter-original-text.vertical {
+    font-size: 0.9rem;
+  }
+
+  .nav-item {
+    min-width: 48px;
+    padding: 4px 8px;
+  }
+
+  .nav-item i {
+    font-size: 18px !important;
+  }
+}
+
+/* 横屏适配 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .letter-original-text.vertical {
+    height: 55vh;
+    max-height: 280px;
+    min-height: 200px;
+  }
 }
 </style>
 </head>
